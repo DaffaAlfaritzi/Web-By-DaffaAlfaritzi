@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCAD Survey-to-CAD Digitizer</title>
+    <!-- Leaflet CSS untuk Kanvas Interaktif -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar Kontrol -->
+      <aside class="sidebar">
+        <h2>Otomatisasi Survey-to-CAD</h2>
+        <p class="subtitle">Sistem By Daffa Alfaritzi - 070</p>
+
+        <!-- 1. Input Data CSV -->
+        <div class="card">
+          <h3>1. Input Data PENZD</h3>
+          <input type="file" id="csvFileInput" accept=".csv,.txt" />
+          <button id="btnLoadSample" class="btn-secondary">
+            Muat Contoh Data Praktikum
+          </button>
+          <div id="pointCountInfo" class="status-info">
+            Belum ada data dimuat.
+          </div>
+        </div>
+
+        <!-- 2. Alat Digitasi (Point Snapping) -->
+        <div class="card">
+          <h3>2. Mode Digitasi (Klik Titik)</h3>
+          <label for="digitizeMode">Pilih Jenis Objek:</label>
+          <select id="digitizeMode">
+            <option value="boundary">
+              Batas Area Ukur (Poligon Clip Kontur)
+            </option>
+            <option value="building">
+              Bangunan / Gedung (Poligon Tertutup)
+            </option>
+            <option value="polyline">Jalan / Saluran (Garis Terbuka)</option>
+          </select>
+
+          <div class="active-draw-box">
+            <span
+              >Titik terpilih saat ini:
+              <strong id="currentPointsCount">0</strong></span
+            >
+            <div class="btn-group">
+              <button id="btnFinishShape" class="btn-primary" disabled>
+                Simpan Objek
+              </button>
+              <button id="btnCancelShape" class="btn-danger" disabled>
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Daftar Objek yang Sudah Didigitasi -->
+        <div class="card">
+          <h3>3. Daftar Objek Terdigitasi</h3>
+          <ul id="shapeList" class="shape-list">
+            <li class="empty-msg">Belum ada objek yang disambungkan.</li>
+          </ul>
+        </div>
+
+        <!-- 4. Pengaturan Kontur & Export ke Python -->
+        <div class="card">
+          <h3>4. Pengaturan Kontur & Export</h3>
+          <div class="input-row">
+            <label>Interval Minor (m):</label>
+            <input
+              type="number"
+              id="intervalMinor"
+              value="0.5"
+              step="0.1"
+              min="0.1"
+            />
+          </div>
+          <div class="input-row">
+            <label>Interval Mayor (m):</label>
+            <input
+              type="number"
+              id="intervalMajor"
+              value="2.5"
+              step="0.5"
+              min="0.5"
+            />
+          </div>
+          <button id="btnExportCAD" class="btn-success" disabled>
+            Selesai & Proses ke CAD (.dxf)
+          </button>
+        </div>
+      </aside>
+
+      <!-- Area Kanvas CAD -->
+      <main class="canvas-area">
+        <div id="cadCanvas"></div>
+        <div class="canvas-hint">
+          💡 <strong>Tips:</strong> Klik langsung pada titik di kanvas untuk
+          menyambungkan garis (Auto-Snap aktif). Gunakan scroll mouse untuk
+          Zoom.
+        </div>
+      </main>
+    </div>
+
+    <!-- Library PapaParse (CSV) & Leaflet (Kanvas Spasial) -->
+    <!-- Library PapaParse, Leaflet, & Proj4js untuk Konversi UTM ke LatLon Akurat -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

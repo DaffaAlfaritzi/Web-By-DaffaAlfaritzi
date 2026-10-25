@@ -1,0 +1,181 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #121417;
+  color: #e4e6eb;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 340px;
+  background-color: #1c1f26;
+  border-right: 1px solid #2d323e;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 1.25rem;
+  color: #38bdf8;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: -10px;
+}
+
+.card {
+  background-color: #252932;
+  border: 1px solid #343a46;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card h3 {
+  font-size: 0.9rem;
+  color: #f3f4f6;
+  border-bottom: 1px solid #343a46;
+  padding-bottom: 6px;
+}
+
+input[type="file"], select, input[type="number"] {
+  width: 100%;
+  padding: 7px;
+  background-color: #16191f;
+  border: 1px solid #3f4654;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.input-row input {
+  width: 85px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82rem;
+  transition: opacity 0.2s;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary { background-color: #0284c7; color: white; flex: 1; }
+.btn-secondary { background-color: #374151; color: #e5e7eb; }
+.btn-danger { background-color: #dc2626; color: white; }
+.btn-success { background-color: #16a34a; color: white; width: 100%; padding: 10px; font-size: 0.9rem; }
+
+.status-info {
+  font-size: 0.78rem;
+  color: #a7f3d0;
+}
+
+.active-draw-box {
+  background: #16191f;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+}
+
+.shape-list {
+  list-style: none;
+  max-height: 130px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.shape-list li {
+  background: #16191f;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.empty-msg {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Kanvas CAD Area */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  background-color: #0d0f12;
+}
+
+#cadCanvas {
+  width: 100%;
+  height: 100%;
+  background-color: #0d0f12;
+  /* Grid halus ala AutoCAD */
+  background-image: radial-gradient(#262b36 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.canvas-hint {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  background: rgba(28, 31, 38, 0.9);
+  border: 1px solid #374151;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Label Titik Ukur di Kanvas */
+.point-label {
+  background: rgba(0, 0, 0, 0.65);
+  border: none;
+  color: #e2e8f0;
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  box-shadow: none;
+}

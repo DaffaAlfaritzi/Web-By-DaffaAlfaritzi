@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/generate-dxf",
+      "destination": "/api/generate_dxf"
+    }
+  ],
+  "functions": {
+    "api/generate_dxf.py": {
+      "includeFiles": "angelllll.dxf",
+      "maxDuration": 30
+    }
+  }
+}

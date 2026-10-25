@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/generate-dxf",
-      "destination": "/api/generate_dxf"
+      "destination": "/api/generate_dxf.py"
     }
   ],
   "functions": {
@@ -10,5 +10,11 @@
       "includeFiles": "angelllll.dxf",
       "maxDuration": 30
     }
-  }
+  },
+  "builds": [
+    {
+      "src": "api/generate_dxf.py",
+      "use": "@vercel/python"
+    }
+  ]
 }

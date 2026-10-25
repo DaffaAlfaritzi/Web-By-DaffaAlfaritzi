@@ -647,7 +647,13 @@ function clipSegmentWithPoly(seg, poly, keepInside) {
   return out;
 }
 
-btnExportCAD.addEventListener("click", async () => {
+// ============================================================================
+// 7. ENGINE KONTUR & EXPORT DXF BER-LAYOUT LANGSUNG DI BROWSER (TANPA PYTHON)
+// ============================================================================
+// ============================================================================
+// TOMBOL EXPORT CAD & KONTUR (MURNI JAVASCRIPT DI BROWSER)
+// ============================================================================
+btnExportCAD.addEventListener("click", () => {
   if (surveyPoints.length < 3) {
     alert("Minimal butuh 3 titik PENZD untuk memproses kontur dan CAD!");
     return;
@@ -658,7 +664,6 @@ btnExportCAD.addEventListener("click", async () => {
   const intervalMajor =
     parseFloat(document.getElementById("intervalMajor").value) || 2.5;
 
-  // 1. Render Kontur Mayor & Minor langsung di Peta WebGIS (terpotong Batas Area)
   const ptMap = new Map(surveyPoints.map((p) => [String(p.P), p]));
   const boundaryPolys = [];
   const buildingPolys = [];
@@ -684,8 +689,6 @@ btnExportCAD.addEventListener("click", async () => {
 
   const startZ = Math.floor(minZ / intervalMinor) * intervalMinor;
   const endZ = Math.ceil(maxZ / intervalMinor) * intervalMinor;
-
-  contoursLayer.clearLayers();
   const contourSegments = [];
 
   for (let elev = startZ; elev <= endZ + 1e-6; elev += intervalMinor) {
@@ -729,48 +732,183 @@ btnExportCAD.addEventListener("click", async () => {
 
         for (const [x1, y1, x2, y2] of activeSegs) {
           contourSegments.push({ x1, y1, x2, y2, elev, isMajor });
-          const ll1 = utm48sToLatLon(x1, y1);
-          const ll2 = utm48sToLatLon(x2, y2);
-          L.polyline([ll1, ll2], {
-            pane: "shapesPane",
-            interactive: false,
-            color: isMajor ? "#f97316" : "#94a3b8",
-            weight: isMajor ? 2.2 : 1.0,
-            opacity: isMajor ? 0.95 : 0.75,
-          }).addTo(contoursLayer);
         }
       }
     }
   }
 
-  // 2. Ambil file .dxf ber-layout langsung dari Python app.py (Port 8088)
-  // 2. Ambil file .dxf ber-layout dari backend Python (Otomatis jalan di Lokal maupun Vercel!)
-  try {
-    const response = await fetch("/generate-dxf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        points: surveyPoints,
-        shapes: digitizedShapes,
-        contour_minor: intervalMinor,
-        contour_major: intervalMajor,
-      }),
+  const dxf = [];
+  const pushDXF = (...lines) => dxf.push(...lines);
+
+  pushDXF(
+    "0",
+    "SECTION",
+    "2",
+    "HEADER",
+    "9",
+    "$ACADVER",
+    "1",
+    "AC1009",
+    "0",
+    "ENDSEC",
+  );
+  pushDXF(
+    "0",
+    "SECTION",
+    "2",
+    "TABLES",
+    "0",
+    "TABLE",
+    "2",
+    "LAYER",
+    "70",
+    "10",
+  );
+
+  const cadLayers = [
+    ["TITIK_UKUR", 4],
+    ["DIGITASI_BATAS", 3],
+    ["DIGITASI_BANGUNAN", 1],
+    ["DIGITASI_PARKIRAN", 6],
+    ["DIGITASI_JALAN_PARIT", 2],
+    ["KONTUR_MINOR", 8],
+    ["KONTUR_MAYOR", 30],
+    ["LABEL_KONTUR", 2],
+    ["KOP_PETA", 7],
+  ];
+
+  cadLayers.forEach(([name, color]) => {
+    pushDXF(
+      "0",
+      "LAYER",
+      "2",
+      name,
+      "70",
+      "0",
+      "62",
+      String(color),
+      "6",
+      "CONTINUOUS",
+    );
+  });
+  pushDXF("0", "ENDTAB", "0", "ENDSEC", "0", "SECTION", "2", "ENTITIES");
+
+  surveyPoints.forEach((p) => {
+    pushDXF(
+      "0",
+      "POINT",
+      "8",
+      "TITIK_UKUR",
+      "10",
+      p.E.toFixed(3),
+      "20",
+      p.N.toFixed(3),
+      "30",
+      p.Z.toFixed(3),
+    );
+  });
+
+  const layerByType = {
+    boundary: "DIGITASI_BATAS",
+    building: "DIGITASI_BANGUNAN",
+    parking: "DIGITASI_PARKIRAN",
+    polyline: "DIGITASI_JALAN_PARIT",
+  };
+
+  digitizedShapes.forEach((shape) => {
+    const pts = shape.points.map((id) => ptMap.get(String(id))).filter(Boolean);
+    if (pts.length < 2) return;
+    const layerName = layerByType[shape.type] || "DIGITASI_JALAN_PARIT";
+    const isClosed =
+      shape.type === "boundary" ||
+      shape.type === "building" ||
+      shape.type === "parking";
+
+    pushDXF(
+      "0",
+      "POLYLINE",
+      "8",
+      layerName,
+      "66",
+      "1",
+      "70",
+      isClosed ? "9" : "8",
+    );
+    pts.forEach((p) => {
+      pushDXF(
+        "0",
+        "VERTEX",
+        "8",
+        layerName,
+        "10",
+        p.E.toFixed(3),
+        "20",
+        p.N.toFixed(3),
+        "30",
+        p.Z.toFixed(3),
+        "70",
+        "32",
+      );
     });
+    pushDXF("0", "SEQEND", "8", layerName);
+  });
 
-    if (!response.ok) {
-      throw new Error("Gagal memproses layout di server Python.");
+  contourSegments.forEach((seg, idx) => {
+    const lyr = seg.isMajor ? "KONTUR_MAYOR" : "KONTUR_MINOR";
+    pushDXF(
+      "0",
+      "LINE",
+      "8",
+      lyr,
+      "10",
+      seg.x1.toFixed(3),
+      "20",
+      seg.y1.toFixed(3),
+      "30",
+      seg.elev.toFixed(3),
+      "11",
+      seg.x2.toFixed(3),
+      "21",
+      seg.y2.toFixed(3),
+      "31",
+      seg.elev.toFixed(3),
+    );
+
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (seg.isMajor && length > 10.0 && idx % 8 === 0) {
+      const mx = 0.5 * (seg.x1 + seg.x2);
+      const my = 0.5 * (seg.y1 + seg.y2);
+      pushDXF(
+        "0",
+        "TEXT",
+        "8",
+        "LABEL_KONTUR",
+        "10",
+        mx.toFixed(3),
+        "20",
+        my.toFixed(3),
+        "30",
+        seg.elev.toFixed(3),
+        "40",
+        "0.55",
+        "1",
+        `${seg.elev.toFixed(1)}`,
+      );
     }
+  });
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "Hasil_Layout_Bersih.dxf";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    alert("Gagal memproses file DXF: " + e.message);
-  }
+  pushDXF("0", "ENDSEC", "0", "EOF");
+
+  const dxfBlob = new Blob([dxf.join("\n")], { type: "application/dxf" });
+  const downloadUrl = URL.createObjectURL(dxfBlob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = "Hasil_Layout_Bersih.dxf";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(downloadUrl);
 });

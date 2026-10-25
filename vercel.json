@@ -10,5 +10,10 @@
       "includeFiles": "angelllll.dxf",
       "maxDuration": 30
     }
+  },
+  "build": {
+    "env": {
+      "PIP_USER": "0"
+    }
   }
 }

@@ -11,9 +11,5 @@
       "maxDuration": 30
     }
   },
-  "build": {
-    "env": {
-      "PIP_USER": "0"
-    }
-  }
+  "buildCommand": "pip install -r requirements.txt"
 }

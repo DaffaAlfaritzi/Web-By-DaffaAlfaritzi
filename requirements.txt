@@ -1,4 +1,4 @@
-ezdxf
+numpy
 matplotlib
 shapely
-numpy
+ezdxf
